@@ -1,30 +1,74 @@
-# rest-client-quickstart project
+# rest-client-quarkus-example
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+## Prerequisites
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+You will need:
 
-## Running the application in dev mode
+* Java 11+ installed
+* Environment variable JAVA_HOME set accordingly
+* Maven 3.6.2+ installed
+* Docker
 
-You can run your application in dev mode that enables live coding using:
+When using native image compilation, you will also need:
+
+* GraalVM 19.3.1 installed
+* Environment variable GRAALVM_HOME set accordingly
+
+Note that GraalVM native image compilation typically requires other packages (glibc-devel, zlib-devel and gcc) to be installed too. You also need 'native-image' installed in GraalVM (using 'gu install native-image'). Please refer to GraalVM installation documentation for more details.
+
+
+
+## Containerize the application using Docker
+
+##### Generate the native executable for the Docker image
+
+```bash
+mvn clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=docker
 ```
-./mvnw quarkus:dev
+
+##### Generate the Docker image 
+
+```bash
+docker build -f src/main/docker/Dockerfile.native -t rest-client-quickstart .
 ```
 
-## Packaging and running the application
+##### Generate the container
 
-The application can be packaged using `./mvnw package`.
-It produces the `rest-client-quickstart-1.0-SNAPSHOT-runner.jar` file in the `/target` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/lib` directory.
+```bash
+docker run -p 8080:8080 -m 16m --cpus=.25 -d --name rest-client-quickstart rest-client-quickstart
+```
 
-The application is now runnable using `java -jar target/rest-client-quickstart-1.0-SNAPSHOT-runner.jar`.
 
-## Creating a native executable
 
-You can create a native executable using: `./mvnw package -Pnative`.
+## Testing 
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: `./mvnw package -Pnative -Dquarkus.native.container-build=true`.
+##### Example Usage
 
-You can then execute your native executable with: `./target/rest-client-quickstart-1.0-SNAPSHOT-runner`
+Once the service is up and running, you can use the following example to interact with the service.
 
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/building-native-image.
+GET: http://localhost:8080/country/name/mexico
+
+###### Curl command
+
+```bash
+curl "http://localhost:8080/country/name/mexico" -H "accept: application/json"
+```
+
+##### Example response:
+
+```json
+[
+    {
+        "alpha2Code": "MX",
+        "capital": "Mexico City",
+        "currencies": [
+            {
+                "code": "MXN",
+                "name": "Mexican peso",
+                "symbol": "$"
+            }   
+        ],
+        "name": "Mexico"
+    }
+]
+```
